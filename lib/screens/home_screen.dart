@@ -21,26 +21,60 @@ class _HomeScreenState extends State<HomeScreen> {
     _fetchWeatherData();
   }
 
-  Future<void> _fetchWeatherData() async {
-    try {
-      WeatherService weatherService = WeatherService();
-      Weather weatherData = await weatherService.fetchWeather('São Paulo');
-      List<HourlyForecast> hourlyData = await weatherService.fetchHourlyForecast('São Paulo');
-      List<DailyForecast> dailyData = await weatherService.fetchDailyForecast('São Paulo');
+Future<void> _fetchWeatherData() async {
+  setState(() {
+    _isLoading = true; // Definido como true no início da operação de carregamento
+  });
 
-      setState(() {
-        _weather = weatherData;
-        _hourlyForecast = hourlyData;
-        _dailyForecast = dailyData;
-        _isLoading = false;
-      });
-    } catch (e) {
-      print("Erro ao buscar dados: $e");
-      setState(() {
-        _isLoading = false;
-      });
-    }
+  try {
+    Weather weatherData = await _fetchWeather();
+    List<HourlyForecast> hourlyData = await _fetchHourlyForecast();
+    List<DailyForecast> dailyData = await _fetchDailyForecast();
+
+    setState(() {
+      _weather = weatherData;
+      _hourlyForecast = hourlyData;
+      _dailyForecast = dailyData;
+      _isLoading = false;
+    });
+  } catch (e) {
+    print("Erro ao buscar dados: $e");
+    setState(() {
+      _isLoading = false;
+    });
   }
+}
+
+Future<Weather> _fetchWeather() async {
+  try {
+    WeatherService weatherService = WeatherService();
+    return await weatherService.fetchWeather('São Paulo');
+  } catch (e) {
+    print("Erro ao buscar dados do clima: $e");
+    rethrow; // Re-lança a exceção para que o erro geral possa ser capturado no _fetchWeatherData
+  }
+}
+
+Future<List<HourlyForecast>> _fetchHourlyForecast() async {
+  try {
+    WeatherService weatherService = WeatherService();
+    return await weatherService.fetchHourlyForecast('São Paulo');
+  } catch (e) {
+    print("Erro ao buscar dados da previsão horária: $e");
+    rethrow; // Re-lança a exceção para que o erro geral possa ser capturado no _fetchWeatherData
+  }
+}
+
+Future<List<DailyForecast>> _fetchDailyForecast() async {
+  try {
+    WeatherService weatherService = WeatherService();
+    return await weatherService.fetchDailyForecast('São Paulo');
+  } catch (e) {
+    print("Erro ao buscar dados da previsão diária: $e");
+    rethrow; // Re-lança a exceção para que o erro geral possa ser capturado no _fetchWeatherData
+  }
+}
+
 
   @override
   Widget build(BuildContext context) {
