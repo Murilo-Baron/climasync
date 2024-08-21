@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/weather_model.dart';
+import '../models/hourly_forecast.dart';
+import '../models/daily_forecast.dart';
 import '../services/weather_service.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -9,6 +11,8 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   Weather? _weather;
+  List<HourlyForecast>? _hourlyForecast;
+  List<DailyForecast>? _dailyForecast;
   bool _isLoading = true;
 
   @override
@@ -18,12 +22,24 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _fetchWeatherData() async {
-    WeatherService weatherService = WeatherService();
-    Weather weatherData = await weatherService.fetchWeather('São Paulo');
-    setState(() {
-      _weather = weatherData;
-      _isLoading = false;
-    });
+    try {
+      WeatherService weatherService = WeatherService();
+      Weather weatherData = await weatherService.fetchWeather('São Paulo');
+      List<HourlyForecast> hourlyData = await weatherService.fetchHourlyForecast('São Paulo');
+      List<DailyForecast> dailyData = await weatherService.fetchDailyForecast('São Paulo');
+
+      setState(() {
+        _weather = weatherData;
+        _hourlyForecast = hourlyData;
+        _dailyForecast = dailyData;
+        _isLoading = false;
+      });
+    } catch (e) {
+      print("Erro ao buscar dados: $e");
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -69,11 +85,18 @@ class _HomeScreenState extends State<HomeScreen> {
         setState(() {
           _isLoading = true;
         });
-        Weather weatherData = await WeatherService().fetchWeather(value);
-        setState(() {
-          _weather = weatherData;
-          _isLoading = false;
-        });
+        try {
+          Weather weatherData = await WeatherService().fetchWeather(value);
+          setState(() {
+            _weather = weatherData;
+            _isLoading = false;
+          });
+        } catch (e) {
+          print("Erro ao buscar dados da nova localização: $e");
+          setState(() {
+            _isLoading = false;
+          });
+        }
       },
     );
   }
@@ -99,21 +122,21 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildNextHoursForecast() {
-    // Por enquanto, este exemplo utiliza dados estáticos
-    // Você pode adaptar para usar os dados da API para previsão horária
     return Container(
       height: 100,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: 8, // Supondo 8 horas de previsão
-        itemBuilder: (context, index) {
-          return _buildHourlyForecastItem();
-        },
-      ),
+      child: _hourlyForecast != null
+          ? ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: _hourlyForecast!.length,
+              itemBuilder: (context, index) {
+                return _buildHourlyForecastItem(_hourlyForecast![index]);
+              },
+            )
+          : Center(child: Text("Sem dados de previsão horária")),
     );
   }
 
-  Widget _buildHourlyForecastItem() {
+  Widget _buildHourlyForecastItem(HourlyForecast forecast) {
     return Container(
       width: 80,
       margin: EdgeInsets.only(right: 8),
@@ -125,51 +148,48 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text("18:00", style: TextStyle(fontSize: 16)),
-          Icon(Icons.wb_sunny, size: 24),
-          Text("-3°C", style: TextStyle(fontSize: 16)),
+          Text("${forecast.time}", style: TextStyle(fontSize: 16)),
+          Icon(Icons.wb_sunny, size: 24), // Substitua por ícones dinâmicos baseados no clima
+          Text("${forecast.temperature}°C", style: TextStyle(fontSize: 16)),
         ],
       ),
     );
   }
 
   Widget _buildNextDaysForecast() {
-    // Suponha que você tem uma lista de previsões diárias
     return Container(
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
         color: Colors.grey[200],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            "Proximos 7 dias",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildDailyForecastItem(),
-              _buildDailyForecastItem(),
-              _buildDailyForecastItem(),
-              _buildDailyForecastItem(),
-              _buildDailyForecastItem(),
-            ],
-          ),
-        ],
-      ),
+      child: _dailyForecast != null
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Próximos 7 dias",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: _dailyForecast!
+                      .map((forecast) => _buildDailyForecastItem(forecast))
+                      .toList(),
+                ),
+              ],
+            )
+          : Center(child: Text("Sem dados de previsão diária")),
     );
   }
 
-  Widget _buildDailyForecastItem() {
+  Widget _buildDailyForecastItem(DailyForecast forecast) {
     return Column(
       children: [
-        Text("Mon", style: TextStyle(fontSize: 16)),
-        Icon(Icons.wb_sunny, size: 24),
-        Text("-5°C", style: TextStyle(fontSize: 16)),
+        Text("${forecast.day}", style: TextStyle(fontSize: 16)),
+        Icon(Icons.wb_sunny, size: 24), // Substitua por ícones dinâmicos baseados no clima
+        Text("${forecast.temperature}°C", style: TextStyle(fontSize: 16)),
       ],
     );
   }
@@ -194,8 +214,7 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               _buildDetailItem("Humidade", "${_weather?.humidity ?? ''}%"),
               _buildDetailItem("Vento", "${_weather?.windSpeed ?? ''} km/h"),
-              _buildDetailItem(
-                  "Temperatura", "${_weather?.feelsLike ?? ''}°C"),
+              _buildDetailItem("Sensação Térmica", "${_weather?.feelsLike ?? ''}°C"),
             ],
           ),
         ],
