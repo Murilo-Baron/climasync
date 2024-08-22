@@ -87,17 +87,19 @@ class _HomeScreenState extends State<HomeScreen> {
       case 'scattered clouds':
         return 'Nuvens dispersas';
       case 'broken clouds':
-        return 'Muvens quebradas';
+        return 'Nuvens quebradas';
       case 'shower rain':
         return 'Garoa';
       case 'rain':
-        return 'chuva';
+        return 'Chuva';
       case 'thunderstorm':
-        return 'trovoada';
+        return 'Trovoada';
       case 'snow':
-        return 'neve';
+        return 'Neve';
       case 'mist':
-        return 'névoa';
+        return 'Névoa';
+      case 'light rain':
+        return 'Chuva leve';
       default:
         return description; // Caso a descrição não tenha tradução, retorna o original
     }
@@ -107,26 +109,44 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Climasync"),
+        title: Text(
+          "Climasync",
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        backgroundColor: Colors.blueAccent,
+        elevation: 0,
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildSearchBar(),
-                    SizedBox(height: 20),
-                    _buildCurrentWeather(),
-                    SizedBox(height: 20),
-                    _buildNextHoursForecast(),
-                    SizedBox(height: 20),
-                    _buildNextDaysForecast(),
-                    SizedBox(height: 20),
-                    _buildTodayDetails(),
-                  ],
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.blueAccent, Colors.lightBlueAccent],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildSearchBar(),
+                      SizedBox(height: 20),
+                      _buildCurrentWeather(),
+                      SizedBox(height: 20),
+                      _buildNextHoursForecast(),
+                      SizedBox(height: 20),
+                      _buildNextDaysForecast(),
+                      SizedBox(height: 20),
+                      _buildTodayDetails(),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -134,64 +154,118 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildSearchBar() {
-    return TextField(
-      decoration: InputDecoration(
-        hintText: 'Procure por uma localização',
-        prefixIcon: Icon(Icons.search),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(30),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black26,
+            blurRadius: 10,
+            offset: Offset(0, 5),
+          ),
+        ],
       ),
-      onSubmitted: (value) async {
-        setState(() {
-          _isLoading = true;
-        });
-        try {
-          Weather weatherData = await WeatherService().fetchWeather(value);
-          List<HourlyForecast> hourlyData =
-              await WeatherService().fetchHourlyForecast(value);
-          List<DailyForecast> dailyData =
-              await WeatherService().fetchDailyForecast(value);
+      child: TextField(
+        decoration: InputDecoration(
+          hintText: 'Procure por uma localização',
+          prefixIcon: Icon(Icons.search, color: Colors.blueAccent),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(30),
+            borderSide: BorderSide.none,
+          ),
+          filled: true,
+          fillColor: Colors.white,
+        ),
+        onSubmitted: (value) async {
+          setState(() {
+            _isLoading = true;
+          });
+          try {
+            Weather weatherData = await WeatherService().fetchWeather(value);
+            List<HourlyForecast> hourlyData =
+                await WeatherService().fetchHourlyForecast(value);
+            List<DailyForecast> dailyData =
+                await WeatherService().fetchDailyForecast(value);
 
-          setState(() {
-            _weather = weatherData;
-            _hourlyForecast = hourlyData;
-            _dailyForecast = dailyData;
-            _isLoading = false;
-          });
-        } catch (e) {
-          print("Erro ao buscar dados da nova localização: $e");
-          setState(() {
-            _isLoading = false;
-          });
-        }
-      },
+            setState(() {
+              _weather = weatherData;
+              _hourlyForecast = hourlyData;
+              _dailyForecast = dailyData;
+              _isLoading = false;
+            });
+          } catch (e) {
+            print("Erro ao buscar dados da nova localização: $e");
+            setState(() {
+              _isLoading = false;
+            });
+          }
+        },
+      ),
     );
   }
 
   Widget _buildCurrentWeather() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          _weather?.cityName ?? '',
-          style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-        ),
-        Text(
-          '${_weather?.temperature.toStringAsFixed(1) ?? ''}°C',
-          style: TextStyle(fontSize: 48, fontWeight: FontWeight.w300),
-        ),
-        Text(
-          translateWeatherDescription(_weather?.description ?? ''),
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.w300),
-        ),
-      ],
+    return Container(
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.8),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black26,
+            blurRadius: 10,
+            offset: Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            _weather?.cityName ?? '',
+            style: TextStyle(
+              fontSize: 32,
+              fontWeight: FontWeight.bold,
+              color: Colors.blueAccent,
+            ),
+          ),
+          SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Text(
+                '${_weather?.temperature.toStringAsFixed(1) ?? ''}°C',
+                style: TextStyle(
+                  fontSize: 48,
+                  fontWeight: FontWeight.w300,
+                  color: Colors.blueAccent,
+                ),
+              ),
+              SizedBox(width: 20),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    translateWeatherDescription(_weather?.description ?? ''),
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w300,
+                      color: Colors.blueAccent,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildNextHoursForecast() {
     return Container(
-      height: 100,
+      height: 120,
       child: _hourlyForecast != null
           ? ListView.builder(
               scrollDirection: Axis.horizontal,
@@ -209,28 +283,41 @@ class _HomeScreenState extends State<HomeScreen> {
     String formattedTime = DateFormat('HH:mm').format(forecast.dateTime);
 
     return Container(
-      width: 80,
+      width: 90,
       margin: EdgeInsets.only(right: 8),
-      padding: EdgeInsets.all(8),
+      padding: EdgeInsets.all(10),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        color: Colors.grey[200],
+        color: Colors.white.withOpacity(0.8),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black26,
+            blurRadius: 10,
+            offset: Offset(0, 5),
+          ),
+        ],
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Expanded(
-            child: Text(formattedTime,
-                style: TextStyle(fontSize: 14), textAlign: TextAlign.center),
+            child: Text(
+              formattedTime,
+              style: TextStyle(fontSize: 16, color: Colors.blueAccent),
+              textAlign: TextAlign.center,
+            ),
           ),
-          Flexible(
-            child: Icon(Icons.wb_sunny,
-                size: 24), // Ícone placeholder, substituir por ícone dinâmico
+          SizedBox(height: 5),
+          Icon(
+            Icons.wb_sunny,
+            size: 30,
+            color: Colors.orangeAccent,
           ),
+          SizedBox(height: 5),
           Expanded(
             child: Text(
               "${forecast.temperature.toStringAsFixed(1)}°C",
-              style: TextStyle(fontSize: 14),
+              style: TextStyle(fontSize: 16, color: Colors.blueAccent),
               textAlign: TextAlign.center,
             ),
           ),
@@ -243,8 +330,15 @@ class _HomeScreenState extends State<HomeScreen> {
     return Container(
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        color: Colors.grey[200],
+        borderRadius: BorderRadius.circular(20),
+        color: Colors.white.withOpacity(0.8),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black26,
+            blurRadius: 10,
+            offset: Offset(0, 5),
+          ),
+        ],
       ),
       child: _dailyForecast != null
           ? Column(
@@ -252,7 +346,11 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 Text(
                   "Próximos 7 dias",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blueAccent,
+                  ),
                 ),
                 SizedBox(height: 10),
                 Column(
@@ -271,7 +369,7 @@ class _HomeScreenState extends State<HomeScreen> {
     String formattedDay = DateFormat.EEEE('pt_BR').format(forecast.date);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -279,15 +377,21 @@ class _HomeScreenState extends State<HomeScreen> {
             flex: 2,
             child: Text(
               formattedDay,
-              style: TextStyle(fontSize: 16),
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.blueAccent,
+              ),
             ),
           ),
           Expanded(
             flex: 1,
             child: Column(
               children: [
-                Icon(Icons.wb_sunny,
-                    size: 24), // Ícone placeholder, substituir por ícone dinâmico
+                Icon(
+                  Icons.wb_sunny,
+                  size: 30,
+                  color: Colors.orangeAccent,
+                ), // Ícone placeholder, substituir por ícone dinâmico
               ],
             ),
           ),
@@ -295,7 +399,10 @@ class _HomeScreenState extends State<HomeScreen> {
             flex: 1,
             child: Text(
               "${forecast.temperature.toStringAsFixed(1)}°C",
-              style: TextStyle(fontSize: 16),
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.blueAccent,
+              ),
               textAlign: TextAlign.right,
             ),
           ),
@@ -308,15 +415,26 @@ class _HomeScreenState extends State<HomeScreen> {
     return Container(
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        color: Colors.grey[200],
+        borderRadius: BorderRadius.circular(20),
+        color: Colors.white.withOpacity(0.8),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black26,
+            blurRadius: 10,
+            offset: Offset(0, 5),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             "Detalhes de hoje",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.blueAccent,
+            ),
           ),
           SizedBox(height: 10),
           Row(
@@ -337,9 +455,21 @@ class _HomeScreenState extends State<HomeScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: TextStyle(fontSize: 16)),
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 16,
+            color: Colors.blueAccent,
+          ),
+        ),
         SizedBox(height: 5),
-        Text(value, style: TextStyle(fontSize: 16)),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 16,
+            color: Colors.blueAccent,
+          ),
+        ),
       ],
     );
   }

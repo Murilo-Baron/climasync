@@ -15,4 +15,12 @@ class HourlyForecast {
 
   // Método para converter a string time em um objeto DateTime
   DateTime get dateTime => DateFormat("yyyy-MM-dd HH:mm:ss").parse(time);
+
+  // Getter para fornecer uma descrição legível
+  String get description {
+    // Formata a data em um formato mais legível
+    String formattedDate = DateFormat("dd/MM/yyyy HH:mm").format(dateTime);
+    // Retorna uma descrição com a data e a temperatura
+    return 'Data e Hora: $formattedDate, Temperatura: ${temperature.toStringAsFixed(1)}°C';
+  }
 }

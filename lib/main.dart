@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'screens/home_screen.dart'; // Importe o arquivo onde a HomeScreen está definida
-import 'package:intl/date_symbol_data_local.dart'; // Importe o modelo Weather
+import 'package:intl/date_symbol_data_local.dart'; // Para formatação de data
+import 'screens/home_screen.dart'; // Importa o arquivo onde a HomeScreen está definida
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,7 +18,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: HomeScreen(), // Use HomeScreen como tela inicial
+      home: HomeScreen(), // Define HomeScreen como tela inicial
     );
   }
 }
