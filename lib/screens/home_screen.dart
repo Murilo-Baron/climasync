@@ -21,60 +21,59 @@ class _HomeScreenState extends State<HomeScreen> {
     _fetchWeatherData();
   }
 
-Future<void> _fetchWeatherData() async {
-  setState(() {
-    _isLoading = true; // Definido como true no início da operação de carregamento
-  });
-
-  try {
-    Weather weatherData = await _fetchWeather();
-    List<HourlyForecast> hourlyData = await _fetchHourlyForecast();
-    List<DailyForecast> dailyData = await _fetchDailyForecast();
-
+  Future<void> _fetchWeatherData() async {
     setState(() {
-      _weather = weatherData;
-      _hourlyForecast = hourlyData;
-      _dailyForecast = dailyData;
-      _isLoading = false;
+      _isLoading = true;
     });
-  } catch (e) {
-    print("Erro ao buscar dados: $e");
-    setState(() {
-      _isLoading = false;
-    });
-  }
-}
 
-Future<Weather> _fetchWeather() async {
-  try {
-    WeatherService weatherService = WeatherService();
-    return await weatherService.fetchWeather('São Paulo');
-  } catch (e) {
-    print("Erro ao buscar dados do clima: $e");
-    rethrow; // Re-lança a exceção para que o erro geral possa ser capturado no _fetchWeatherData
-  }
-}
+    try {
+      Weather weatherData = await _fetchWeather();
+      List<HourlyForecast> hourlyData = await _fetchHourlyForecast();
+      List<DailyForecast> dailyData = await _fetchDailyForecast();
 
-Future<List<HourlyForecast>> _fetchHourlyForecast() async {
-  try {
-    WeatherService weatherService = WeatherService();
-    return await weatherService.fetchHourlyForecast('São Paulo');
-  } catch (e) {
-    print("Erro ao buscar dados da previsão horária: $e");
-    rethrow; // Re-lança a exceção para que o erro geral possa ser capturado no _fetchWeatherData
+      setState(() {
+        _weather = weatherData;
+        _hourlyForecast = hourlyData;
+        _dailyForecast = dailyData;
+        _isLoading = false;
+      });
+    } catch (e) {
+      print("Erro ao buscar dados: $e");
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
-}
 
-Future<List<DailyForecast>> _fetchDailyForecast() async {
-  try {
-    WeatherService weatherService = WeatherService();
-    return await weatherService.fetchDailyForecast('São Paulo');
-  } catch (e) {
-    print("Erro ao buscar dados da previsão diária: $e");
-    rethrow; // Re-lança a exceção para que o erro geral possa ser capturado no _fetchWeatherData
+  Future<Weather> _fetchWeather() async {
+    try {
+      WeatherService weatherService = WeatherService();
+      return await weatherService.fetchWeather('São Paulo');
+    } catch (e) {
+      print("Erro ao buscar dados do clima: $e");
+      rethrow;
+    }
   }
-}
 
+  Future<List<HourlyForecast>> _fetchHourlyForecast() async {
+    try {
+      WeatherService weatherService = WeatherService();
+      return await weatherService.fetchHourlyForecast('São Paulo');
+    } catch (e) {
+      print("Erro ao buscar dados da previsão horária: $e");
+      rethrow;
+    }
+  }
+
+  Future<List<DailyForecast>> _fetchDailyForecast() async {
+    try {
+      WeatherService weatherService = WeatherService();
+      return await weatherService.fetchDailyForecast('São Paulo');
+    } catch (e) {
+      print("Erro ao buscar dados da previsão diária: $e");
+      rethrow;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -121,8 +120,15 @@ Future<List<DailyForecast>> _fetchDailyForecast() async {
         });
         try {
           Weather weatherData = await WeatherService().fetchWeather(value);
+          List<HourlyForecast> hourlyData =
+              await WeatherService().fetchHourlyForecast(value);
+          List<DailyForecast> dailyData =
+              await WeatherService().fetchDailyForecast(value);
+
           setState(() {
             _weather = weatherData;
+            _hourlyForecast = hourlyData;
+            _dailyForecast = dailyData;
             _isLoading = false;
           });
         } catch (e) {
@@ -144,7 +150,7 @@ Future<List<DailyForecast>> _fetchDailyForecast() async {
           style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
         ),
         Text(
-          '${_weather?.temperature.toStringAsFixed(2) ?? ''}°C',
+          '${_weather?.temperature.toStringAsFixed(1) ?? ''}°C',
           style: TextStyle(fontSize: 48, fontWeight: FontWeight.w300),
         ),
         Text(
@@ -182,9 +188,19 @@ Future<List<DailyForecast>> _fetchDailyForecast() async {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text("${forecast.time}", style: TextStyle(fontSize: 16)),
-          Icon(Icons.wb_sunny, size: 24), // Substitua por ícones dinâmicos baseados no clima
-          Text("${forecast.temperature}°C", style: TextStyle(fontSize: 16)),
+          Expanded(
+            child: Text(forecast.time, style: TextStyle(fontSize: 14), textAlign: TextAlign.center),
+          ),
+          Flexible(
+            child: Icon(Icons.wb_sunny, size: 24), // Ícone placeholder, substituir por ícone dinâmico
+          ),
+          Expanded(
+            child: Text(
+              "${forecast.temperature.toStringAsFixed(1)}°C", 
+              style: TextStyle(fontSize: 14),
+              textAlign: TextAlign.center,
+            ),
+          ),
         ],
       ),
     );
@@ -206,8 +222,7 @@ Future<List<DailyForecast>> _fetchDailyForecast() async {
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 SizedBox(height: 10),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                Column(
                   children: _dailyForecast!
                       .map((forecast) => _buildDailyForecastItem(forecast))
                       .toList(),
@@ -219,12 +234,16 @@ Future<List<DailyForecast>> _fetchDailyForecast() async {
   }
 
   Widget _buildDailyForecastItem(DailyForecast forecast) {
-    return Column(
-      children: [
-        Text("${forecast.day}", style: TextStyle(fontSize: 16)),
-        Icon(Icons.wb_sunny, size: 24), // Substitua por ícones dinâmicos baseados no clima
-        Text("${forecast.temperature}°C", style: TextStyle(fontSize: 16)),
-      ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text("${forecast.day}", style: TextStyle(fontSize: 16)),
+          Icon(Icons.wb_sunny, size: 24), // Ícone placeholder, substituir por ícone dinâmico
+          Text("${forecast.temperature.toStringAsFixed(1)}°C", style: TextStyle(fontSize: 16)),
+        ],
+      ),
     );
   }
 
