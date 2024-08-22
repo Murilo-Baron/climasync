@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+// ignore: depend_on_referenced_packages
+import 'package:intl/intl.dart'; // Para formatar datas
 import '../models/weather_model.dart';
 import '../models/hourly_forecast.dart';
 import '../models/daily_forecast.dart';
@@ -75,11 +77,37 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  // Mapeamento das descrições de clima de inglês para português
+  String translateWeatherDescription(String description) {
+    switch (description.toLowerCase()) {
+      case 'clear sky':
+        return 'Céu limpo';
+      case 'few clouds':
+        return 'Algumas nuvens';
+      case 'scattered clouds':
+        return 'Nuvens dispersas';
+      case 'broken clouds':
+        return 'Muvens quebradas';
+      case 'shower rain':
+        return 'Garoa';
+      case 'rain':
+        return 'chuva';
+      case 'thunderstorm':
+        return 'trovoada';
+      case 'snow':
+        return 'neve';
+      case 'mist':
+        return 'névoa';
+      default:
+        return description; // Caso a descrição não tenha tradução, retorna o original
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Clima"),
+        title: Text("Climasync"),
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
@@ -154,7 +182,7 @@ class _HomeScreenState extends State<HomeScreen> {
           style: TextStyle(fontSize: 48, fontWeight: FontWeight.w300),
         ),
         Text(
-          _weather?.description ?? '',
+          translateWeatherDescription(_weather?.description ?? ''),
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.w300),
         ),
       ],
@@ -177,6 +205,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildHourlyForecastItem(HourlyForecast forecast) {
+    // Converte a string 'time' para DateTime e formata para exibir apenas as horas (ex: 14:00)
+    String formattedTime = DateFormat('HH:mm').format(forecast.dateTime);
+
     return Container(
       width: 80,
       margin: EdgeInsets.only(right: 8),
@@ -189,14 +220,16 @@ class _HomeScreenState extends State<HomeScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Expanded(
-            child: Text(forecast.time, style: TextStyle(fontSize: 14), textAlign: TextAlign.center),
+            child: Text(formattedTime,
+                style: TextStyle(fontSize: 14), textAlign: TextAlign.center),
           ),
           Flexible(
-            child: Icon(Icons.wb_sunny, size: 24), // Ícone placeholder, substituir por ícone dinâmico
+            child: Icon(Icons.wb_sunny,
+                size: 24), // Ícone placeholder, substituir por ícone dinâmico
           ),
           Expanded(
             child: Text(
-              "${forecast.temperature.toStringAsFixed(1)}°C", 
+              "${forecast.temperature.toStringAsFixed(1)}°C",
               style: TextStyle(fontSize: 14),
               textAlign: TextAlign.center,
             ),
@@ -234,14 +267,38 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildDailyForecastItem(DailyForecast forecast) {
+    // Formata a data para exibir o dia da semana (ex: Segunda)
+    String formattedDay = DateFormat.EEEE('pt_BR').format(forecast.date);
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text("${forecast.day}", style: TextStyle(fontSize: 16)),
-          Icon(Icons.wb_sunny, size: 24), // Ícone placeholder, substituir por ícone dinâmico
-          Text("${forecast.temperature.toStringAsFixed(1)}°C", style: TextStyle(fontSize: 16)),
+          Expanded(
+            flex: 2,
+            child: Text(
+              formattedDay,
+              style: TextStyle(fontSize: 16),
+            ),
+          ),
+          Expanded(
+            flex: 1,
+            child: Column(
+              children: [
+                Icon(Icons.wb_sunny,
+                    size: 24), // Ícone placeholder, substituir por ícone dinâmico
+              ],
+            ),
+          ),
+          Expanded(
+            flex: 1,
+            child: Text(
+              "${forecast.temperature.toStringAsFixed(1)}°C",
+              style: TextStyle(fontSize: 16),
+              textAlign: TextAlign.right,
+            ),
+          ),
         ],
       ),
     );
@@ -267,7 +324,8 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               _buildDetailItem("Humidade", "${_weather?.humidity ?? ''}%"),
               _buildDetailItem("Vento", "${_weather?.windSpeed ?? ''} km/h"),
-              _buildDetailItem("Sensação Térmica", "${_weather?.feelsLike ?? ''}°C"),
+              _buildDetailItem(
+                  "Sensação Térmica", "${_weather?.feelsLike ?? ''}°C"),
             ],
           ),
         ],
