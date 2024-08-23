@@ -35,6 +35,22 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+  assets:
+  - assets/icon/clear_sky.png
+  - assets/icon/few_clouds.png
+  - assets/icon/scattered_clouds.png
+  - assets/icon/broken_clouds.png
+  - assets/icon/shower_rain.png
+  - assets/icon/rain.png
+  - assets/icon/thunderstorm.png
+  - assets/icon/snow.png
+  - assets/icon/mist.png
+  - assets/icon/light_rain.png
+  - assets/icon/default.png
+  - assets/icon/warm.png
+  - assets/icon/loss.png
+  - assets/icon/freezing.png
+  - assets/icon/hot.png
 
   # To add assets to your application, add an assets section, like this:
   # assets:

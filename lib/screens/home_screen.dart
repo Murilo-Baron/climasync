@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-// ignore: depend_on_referenced_packages
 import 'package:intl/intl.dart'; // Para formatar datas
 import '../models/weather_model.dart';
 import '../models/hourly_forecast.dart';
@@ -77,31 +76,31 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // Mapeamento das descrições de clima de inglês para português
-  String translateWeatherDescription(String description) {
+  WeatherInfo _getWeatherInfo(String description) {
     switch (description.toLowerCase()) {
       case 'clear sky':
-        return 'Céu limpo';
+        return WeatherInfo('Céu limpo', 'assets/icon/clear_sky.png');
       case 'few clouds':
-        return 'Algumas nuvens';
+        return WeatherInfo('Algumas nuvens', 'assets/icon/default.png');
       case 'scattered clouds':
-        return 'Nuvens dispersas';
+        return WeatherInfo('Nuvens dispersas', 'assets/icon/scattered_clouds.png');
       case 'broken clouds':
-        return 'Nuvens quebradas';
+        return WeatherInfo('Nuvens quebradas', 'assets/icon/broken_clouds.png');
       case 'shower rain':
-        return 'Garoa';
+      case 'moderate rain':
+        return WeatherInfo('Garoa', 'assets/icon/shower_rain.png');
       case 'rain':
-        return 'Chuva';
+        return WeatherInfo('Chuva', 'assets/icon/rain.png');
       case 'thunderstorm':
-        return 'Trovoada';
+        return WeatherInfo('Trovoada', 'assets/icon/thunderstorm.png');
       case 'snow':
-        return 'Neve';
+        return WeatherInfo('Neve', 'assets/icon/snow.png');
       case 'mist':
-        return 'Névoa';
+        return WeatherInfo('Névoa', 'assets/icon/mist.png');
       case 'light rain':
-        return 'Chuva leve';
+        return WeatherInfo('Chuva leve', 'assets/icon/light_rain.png');
       default:
-        return description; // Caso a descrição não tenha tradução, retorna o original
+        return WeatherInfo(description, 'assets/icon/default.png');
     }
   }
 
@@ -206,6 +205,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildCurrentWeather() {
+    WeatherInfo? weatherInfo = _weather != null ? _getWeatherInfo(_weather!.description) : null;
+
     return Container(
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -222,40 +223,48 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            _weather?.cityName ?? '',
-            style: TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.bold,
-              color: Colors.blueAccent,
-            ),
+          Row(
+            children: [
+              Text(
+                _weather?.cityName ?? '',
+                style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blueAccent,
+                ),
+              ),
+             SizedBox(width: 10),
+              if (weatherInfo != null)
+                Padding(
+                  padding: EdgeInsets.only(left: 10), // Adicione o valor de padding que você deseja
+                  child: Text(
+                    weatherInfo.translation,
+                    style: TextStyle(
+                      fontSize: 20,
+                      color: Colors.blueAccent,
+                    ),
+                  ),
+                ),
+            ],
           ),
           SizedBox(height: 10),
           Row(
-            mainAxisAlignment: MainAxisAlignment.start,
             children: [
               Text(
                 '${_weather?.temperature.toStringAsFixed(1) ?? ''}°C',
                 style: TextStyle(
-                  fontSize: 48,
+                  fontSize: 85,
                   fontWeight: FontWeight.w300,
                   color: Colors.blueAccent,
                 ),
               ),
-              SizedBox(width: 20),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    translateWeatherDescription(_weather?.description ?? ''),
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w300,
-                      color: Colors.blueAccent,
-                    ),
-                  ),
-                ],
-              ),
+              SizedBox(width: 10),
+              if (weatherInfo != null)
+                Image.asset(
+                  weatherInfo.iconPath,
+                  width: 60,
+                  height: 60,
+                ),
             ],
           ),
         ],
@@ -278,172 +287,100 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildHourlyForecastItem(HourlyForecast forecast) {
-    // Converte a string 'time' para DateTime e formata para exibir apenas as horas (ex: 14:00)
-    String formattedTime = DateFormat('HH:mm').format(forecast.dateTime);
+Widget _buildHourlyForecastItem(HourlyForecast forecast) {
+  String formattedTime = DateFormat('HH:mm').format(forecast.dateTime);
+  String iconPath = forecast.getTemperatureIcon();
 
-    return Container(
-      width: 90,
-      margin: EdgeInsets.only(right: 8),
-      padding: EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        color: Colors.white.withOpacity(0.8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black26,
-            blurRadius: 10,
-            offset: Offset(0, 5),
+  return Container(
+    width: 90,
+    margin: EdgeInsets.only(right: 8),
+    padding: EdgeInsets.all(10),
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(12),
+      color: Colors.white.withOpacity(0.8),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black26,
+          blurRadius: 6,
+          offset: Offset(0, 4),
+        ),
+      ],
+    ),
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          formattedTime,
+          style: TextStyle(
+            fontSize: 18,
+            color: Colors.blueAccent,
+            fontWeight: FontWeight.bold,
           ),
-        ],
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Expanded(
-            child: Text(
-              formattedTime,
-              style: TextStyle(fontSize: 16, color: Colors.blueAccent),
-              textAlign: TextAlign.center,
-            ),
+        ),
+        SizedBox(height: 10),
+        Flexible( // Use Flexible para ajustar o widget de ícone
+          child: Image.asset(
+            iconPath,
+            width: 40,
+            height: 40,
+            fit: BoxFit.contain, // Certifique-se de que o ícone se ajuste ao espaço
           ),
-          SizedBox(height: 5),
-          Icon(
-            Icons.wb_sunny,
-            size: 30,
-            color: Colors.orangeAccent,
+        ),
+        SizedBox(height: 10),
+        Text(
+          '${forecast.temperature.toStringAsFixed(1)}°C',
+          style: TextStyle(
+            fontSize: 16,
+            color: Colors.blueAccent,
+            fontWeight: FontWeight.bold,
           ),
-          SizedBox(height: 5),
-          Expanded(
-            child: Text(
-              "${forecast.temperature.toStringAsFixed(1)}°C",
-              style: TextStyle(fontSize: 16, color: Colors.blueAccent),
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
+}
+
 
   Widget _buildNextDaysForecast() {
-    return Container(
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        color: Colors.white.withOpacity(0.8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black26,
-            blurRadius: 10,
-            offset: Offset(0, 5),
-          ),
-        ],
-      ),
-      child: _dailyForecast != null
-          ? Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Próximos 7 dias",
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blueAccent,
-                  ),
-                ),
-                SizedBox(height: 10),
-                Column(
-                  children: _dailyForecast!
-                      .map((forecast) => _buildDailyForecastItem(forecast))
-                      .toList(),
-                ),
-              ],
-            )
-          : Center(child: Text("Sem dados de previsão diária")),
-    );
+    return _dailyForecast != null
+        ? Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: _dailyForecast!.map((forecast) {
+              return _buildDailyForecastItem(forecast);
+            }).toList(),
+          )
+        : Center(child: Text("Sem dados de previsão diária"));
   }
 
   Widget _buildDailyForecastItem(DailyForecast forecast) {
-    // Formata a data para exibir o dia da semana (ex: Segunda)
-    String formattedDay = DateFormat.EEEE('pt_BR').format(forecast.date);
+    String dayOfWeek = DateFormat('EEEE', 'pt_BR').format(forecast.dateTime);
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 10),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(color: Colors.white.withOpacity(0.4), width: 1),
+        ),
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Expanded(
-            flex: 2,
-            child: Text(
-              formattedDay,
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.blueAccent,
-              ),
-            ),
-          ),
-          Expanded(
-            flex: 1,
-            child: Column(
-              children: [
-                Icon(
-                  Icons.wb_sunny,
-                  size: 30,
-                  color: Colors.orangeAccent,
-                ), // Ícone placeholder, substituir por ícone dinâmico
-              ],
-            ),
-          ),
-          Expanded(
-            flex: 1,
-            child: Text(
-              "${forecast.temperature.toStringAsFixed(1)}°C",
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.blueAccent,
-              ),
-              textAlign: TextAlign.right,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTodayDetails() {
-    return Container(
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        color: Colors.white.withOpacity(0.8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black26,
-            blurRadius: 10,
-            offset: Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
           Text(
-            "Detalhes de hoje",
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.blueAccent,
-            ),
+            dayOfWeek,
+            style: TextStyle(fontSize: 18, color: Colors.white),
           ),
-          SizedBox(height: 10),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildDetailItem("Humidade", "${_weather?.humidity ?? ''}%"),
-              _buildDetailItem("Vento", "${_weather?.windSpeed ?? ''} km/h"),
-              _buildDetailItem(
-                  "Sensação Térmica", "${_weather?.feelsLike ?? ''}°C"),
+              Icon(
+                Icons.wb_cloudy,
+                color: Colors.white,
+                size: 24,
+              ),
+              SizedBox(width: 10),
+              Text(
+                '${forecast.temperatureMax.toStringAsFixed(1)}°C / ${forecast.temperatureMin.toStringAsFixed(1)}°C',
+                style: TextStyle(fontSize: 18, color: Colors.white),
+              ),
             ],
           ),
         ],
@@ -451,26 +388,70 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildDetailItem(String title, String value) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildTodayDetails() {
+    return _weather != null
+        ? Container(
+            padding: EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.8),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 10,
+                  offset: Offset(0, 5),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Detalhes de hoje",
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blueAccent,
+                  ),
+                ),
+                SizedBox(height: 10),
+                _buildDetailRow("Umidade", '${_weather!.humidity}%'),
+                SizedBox(height: 10),
+                _buildDetailRow("Vento", '${_weather!.windSpeed} km/h'),
+                SizedBox(height: 10),
+                _buildDetailRow("Sensação Térmica", '${_weather!.feelsLike.toStringAsFixed(1)}°C'),
+              ],
+            ),
+          )
+        : Container();
+  }
+
+  Widget _buildDetailRow(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
-          title,
+          label,
           style: TextStyle(
-            fontSize: 16,
+            fontSize: 18,
             color: Colors.blueAccent,
           ),
         ),
-        SizedBox(height: 5),
         Text(
           value,
           style: TextStyle(
-            fontSize: 16,
+            fontSize: 18,
             color: Colors.blueAccent,
           ),
         ),
       ],
     );
   }
+}
+
+class WeatherInfo {
+  final String translation;
+  final String iconPath;
+
+  WeatherInfo(this.translation, this.iconPath);
 }

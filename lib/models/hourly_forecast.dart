@@ -1,26 +1,44 @@
-import 'package:intl/intl.dart'; // Importando o pacote intl
+import 'package:intl/intl.dart';
 
 class HourlyForecast {
   final String time;
   final double temperature;
+  final double temperatureMin;
+  final double temperatureMax;
 
-  HourlyForecast({required this.time, required this.temperature});
+  HourlyForecast({
+    required this.time,
+    required this.temperature,
+    required this.temperatureMin,
+    required this.temperatureMax,
+  });
 
   factory HourlyForecast.fromJson(Map<String, dynamic> json) {
     return HourlyForecast(
-      time: json['dt_txt'] as String? ?? '', // Acessa a chave 'dt_txt' para a data e hora
-      temperature: (json['main']['temp'] as num?)?.toDouble() ?? 0.0, // Acessa a chave 'main.temp' para a temperatura
+      time: json['dt_txt'] as String? ?? '',
+      temperature: (json['main']['temp'] as num?)?.toDouble() ?? 0.0,
+      temperatureMin: (json['main']['temp_min'] as num?)?.toDouble() ?? 0.0,
+      temperatureMax: (json['main']['temp_max'] as num?)?.toDouble() ?? 0.0,
     );
   }
 
-  // Método para converter a string time em um objeto DateTime
   DateTime get dateTime => DateFormat("yyyy-MM-dd HH:mm:ss").parse(time);
 
-  // Getter para fornecer uma descrição legível
   String get description {
-    // Formata a data em um formato mais legível
     String formattedDate = DateFormat("dd/MM/yyyy HH:mm").format(dateTime);
-    // Retorna uma descrição com a data e a temperatura
-    return 'Data e Hora: $formattedDate, Temperatura: ${temperature.toStringAsFixed(1)}°C';
+    return 'Data e Hora: $formattedDate, Temperatura: ${temperature.toStringAsFixed(1)}°C, Mínima: ${temperatureMin.toStringAsFixed(1)}°C, Máxima: ${temperatureMax.toStringAsFixed(1)}°C';
+  }
+
+  // Método para obter o caminho do ícone com base na temperatura
+  String getTemperatureIcon() {
+    if (temperature <= 10) {
+      return 'assets/icon/freezing.png';
+    } else if (temperature <= 20) {
+      return 'assets/icon/loss.png';
+    } else if (temperature <= 30) {
+      return 'assets/icon/warm.png';
+    } else {
+      return 'assets/icon/hot.png';
+    }
   }
 }
