@@ -14,7 +14,7 @@ Este projeto é um ponto de partida para o desenvolvimento de aplicativos Flutte
 
 ### 🛠️ Setup
 
-Para começar a usar o **climasync**, siga estes passos:
+Para começar a usar o **climasfync**, siga estes passos:
 
 1. **Clone o Repositório**
 
