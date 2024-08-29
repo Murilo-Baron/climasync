@@ -352,41 +352,60 @@ Widget _buildHourlyForecastItem(HourlyForecast forecast) {
         : Center(child: Text("Sem dados de previsão diária"));
   }
 
-  Widget _buildDailyForecastItem(DailyForecast forecast) {
-    String dayOfWeek = DateFormat('EEEE', 'pt_BR').format(forecast.dateTime);
+Widget _buildDailyForecastItem(DailyForecast forecast) {
+  String dayOfWeek = DateFormat('EEEE', 'pt_BR').format(forecast.dateTime);
+  WeatherInfo weatherInfo = _getWeatherInfo(forecast.weatherDescription);
 
-    return Container(
-      padding: EdgeInsets.symmetric(vertical: 10),
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: Colors.white.withOpacity(0.4), width: 1),
+  return Container(
+    padding: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+    margin: EdgeInsets.symmetric(vertical: 6), // Alinhamento lateral ajustado
+    width: double.infinity, // Garante que o item ocupe toda a largura disponível
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(12), // Borda arredondada
+      color: Colors.white.withOpacity(0.8), // Cor de fundo
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black26, // Cor da sombra
+          blurRadius: 6, // Intensidade do desfoque
+          offset: Offset(0, 4), // Deslocamento da sombra
         ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
+      ],
+    ),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Expanded(
+          child: Text(
             dayOfWeek,
-            style: TextStyle(fontSize: 18, color: Colors.white),
+            style: TextStyle(
+              fontSize: 18, 
+              color: Colors.blueAccent, // Cor azul para combinar com os outros widgets
+              fontWeight: FontWeight.bold,
+            ),
           ),
-          Row(
-            children: [
-              Icon(
-                Icons.wb_cloudy,
-                color: Colors.white,
-                size: 24,
+        ),
+        Row(
+          children: [
+            Image.asset(
+              weatherInfo.iconPath,
+              width: 24,
+              height: 24,
+            ),
+            SizedBox(width: 10),
+            Text(
+              '${forecast.temperatureMax.toStringAsFixed(1)}°C / ${forecast.temperatureMin.toStringAsFixed(1)}°C',
+              style: TextStyle(
+                fontSize: 18, 
+                color: Colors.blueAccent, // Cor azul para consistência
+                fontWeight: FontWeight.bold,
               ),
-              SizedBox(width: 10),
-              Text(
-                '${forecast.temperatureMax.toStringAsFixed(1)}°C / ${forecast.temperatureMin.toStringAsFixed(1)}°C',
-                style: TextStyle(fontSize: 18, color: Colors.white),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
+}
 
   Widget _buildTodayDetails() {
     return _weather != null
